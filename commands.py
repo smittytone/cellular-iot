@@ -11,9 +11,9 @@ while True:
     try:
         # Is there a message?
         msg = modem.send_command("AT+CMGR=0")
-        if len(msg) > 0:
+        if msg[0] == "OK" and len(msg[1]) > 0:
             # Extract the command from the message
-            parts = msg.split("\r\n")
+            parts = msg[1].split("\r\n")
             command = parts[2]
             if len(command) > 0:
                 # Delete the message (all messages, in fact)
