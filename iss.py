@@ -6,7 +6,7 @@ import sys
 # Set up the modem
 modem = CellularIoT()
 modem.boot()
-mode.set_debug(False)
+modem.set_debug(False)
 
 # URL of the data source
 source_url = "http://api.open-notify.org/iss-now.json"
