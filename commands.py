@@ -6,6 +6,7 @@ import sys
 modem = CellularIoT()
 modem.boot()
 modem.set_debug(False)
+modem.send_command("AT+CMGF=1")
 
 while True:
     try:
