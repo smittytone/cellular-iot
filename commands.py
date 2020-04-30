@@ -35,6 +35,7 @@ while True:
                     # Run supplied AT command
                     print("AT Command Received:", command[2:])
                     result = modem.send_command(command)
+                    result = result[1].split("\r\n")
                     print("Response:           ", result[1])
 
         # Wait 15 seconds before checking again
