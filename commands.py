@@ -28,6 +28,7 @@ while True:
                 if command.upper() == "INFO":
                     # Display modem info
                     result = modem.send_command("AT+QNWINFO")
+                    result = result[1].split("\r\n")
                     print(result[1])
 
                 if command.upper()[:2] == "AT":
