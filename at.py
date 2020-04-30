@@ -23,6 +23,6 @@ while True:
         
     if cmd[:2] != "AT":
         cmd = "AT" + cmd
-        resp = modem.send_command(cmd)
-        print("Response state:", resp[0])
-        print("Response:      ", resp[1])
+    resp = modem.send_command(cmd)
+    print("Response state:", resp[0])
+    print("Response:      ", resp[1])
