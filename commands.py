@@ -5,7 +5,7 @@ import sys
 # Set up the modem
 modem = CellularIoT()
 modem.boot()
-mode.set_debug(False)
+modem.set_debug(False)
 
 while True:
     try:

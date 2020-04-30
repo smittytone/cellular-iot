@@ -30,7 +30,6 @@ while True:
 
         # 4. Set the URL as data
         modem.send_data(source_url)
-        time.sleep(3)
 
         # Make the GET request
         result = modem.send_command("AT+QHTTPGET", "+QHTTPGET", 120)
