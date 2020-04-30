@@ -70,9 +70,14 @@ class UbloxLaraR2():
                 return ("ERROR", self.response)
                 break
 
-    def debug_print(self, message, direction=Tr):
+    # Output debug messages if the debug flag is set
+    def debug_print(self, message):
         if self.debug:
             print(message)
+
+    # Set the debug flag
+    def set_debug(self, state=True):
+        self.debug = state
 
     # Getting a time in miliseconds
     def millis():
