@@ -13,7 +13,7 @@ base_url = "http://api.open-notify.org"
 conn_open = False
 
 # Reset the HTTP profile
-modem.send_command("AT+UHTTP=0)
+modem.send_command("AT+UHTTP=0")
 
 # Set the URL parameters: length and timeout
 modem.send_command("AT+UHTTP=0,1\"" + base_url + "\"")
