@@ -38,14 +38,17 @@ while True:
         # Read the response
         if result[0] == "OK":
             # Check for HTTP error code
-            result = result[1].split(": ")
-            result = result[1].split(",")
-            if result[0] == "0":
-                response = modem.send_command("AT+QHTTPREAD", "OK")
+            try:
+                response = result[1].split(": ")
+                response = response[1].split(",")
+            except IndexError:
+                response = ["0"]
+            if reponse[0] == "0":
+                result = modem.send_command("AT+QHTTPREAD", "OK")
 
                 # Parse the response
-                if response[0] == "OK":
-                    response = response[1].split("\r\n")[2]
+                if result[0] == "OK":
+                    response = result[1].split("\r\n")[2]
                     data = json.loads(response)
 
                     if data["message"] == "success":
