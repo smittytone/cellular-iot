@@ -42,8 +42,9 @@ while True:
                 response = result[1].split(": ")
                 response = response[1].split(",")
             except IndexError:
+                print(response)
                 response = ["0"]
-            if reponse[0] == "0":
+            if response[0] == "0":
                 result = modem.send_command("AT+QHTTPREAD", "OK")
 
                 # Parse the response
