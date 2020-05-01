@@ -7,13 +7,14 @@ import json
 modem = UbloxLaraR2()
 modem.boot()
 modem.set_debug(False)
+modem.send_command("AT+CMEE=2")
 
 # URL of the data source
 base_url = "api.open-notify.org"
 conn_open = False
 
-# Reset the HTTP profile
-modem.send_command("AT+UHTTP=0")
+# Set the HTTP timeout to 30 seconds
+modem.send_command("AT+UHTTP=0,7,30")
 
 # Set the URL parameters: length and timeout
 modem.send_command("AT+UHTTP=0,1,\"" + base_url + "\"")
