@@ -42,6 +42,8 @@ while True:
                     print("ISS is at",data["iss_position"]["longitude"],",",data["iss_position"]["latitude"])
                 else:
                     print("ISS location not retrieved")
+            else:
+                print("No ISS data retrieved",result)
 
         # Close the data connection
         modem.deactivate_context()
