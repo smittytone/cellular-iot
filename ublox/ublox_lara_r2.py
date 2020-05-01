@@ -1,4 +1,4 @@
-#!/usr/bin/python
+ #!/usr/bin/python
 
 '''
   Simplified Library for the Seeed LTA Hat.
@@ -79,6 +79,14 @@ class UbloxLaraR2():
                 self.debug_print(self.response)
                 return ("ERROR", self.response)
                 break
+
+    # Activate a PDP context
+    def activate_context(self):
+        self.send_command("AT+CGACT=1,1")
+
+    # Deactivate a PDP context
+    def deactivate_context(self):
+        self.send_command("AT+CGACT=0,1")
 
     # Output debug messages if the debug flag is set
     def debug_print(self, message):

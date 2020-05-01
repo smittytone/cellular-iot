@@ -10,15 +10,14 @@ modem = UbloxLaraR2()
 modem.boot()
 modem.set_debug(False)
 
+# Set up the modem
+modem = UbloxLaraR2()
+modem.boot()
+modem.set_debug(False)
+
 # URL of the data source
-base_url = "http://api.open-notify.org"
+source_url = "http://api.open-notify.org/iss-now.json"
 conn_open = False
-
-# Reset the HTTP profile
-modem.send_command("AT+UHTTP=0)
-
-# Set the URL parameters: length and timeout
-modem.send_command("AT+UHTTP=0,1\"" + base_url + "\"")
 
 while True:
     try:
@@ -26,9 +25,23 @@ while True:
         modem.activate_context()
         conn_open = True
 
-        # Make the GET request
-        result = modem.send_command("AT+UHHTPC=0,1,\"/iss-now.json\",\"data.json\"", "+UUHTTPCR")
+        # Assemble the HTTP request
+        # 1. Set the PDP Context ID
+        modem.send_command("AT+QHTTPCFG=\"contextid\",1")
 
+        # 2. Choose no custom headers
+        modem.send_command("AT+QHTTPCFG=\"requestheader\",0")
+
+        # 3. Set the URL parameters: length and timeout
+        modem.send_command("AT+QHTTPURL=" + str(len(source_url)) + ",80", "CONNECT", 30)
+
+        # 4. Set the URL as data
+        modem.send_data(source_url)
+
+        # Make the GET request
+        result = modem.send_command("AT+QHTTPGET", "+QHTTPGET", 120)
+
+        # Read the response
         if result[0] == "OK":
             # Check for HTTP error code
             result = result[1].split(": ")
@@ -47,9 +60,11 @@ while True:
                     print("ISS location not retrieved")
             else:
                 print("ISS location not retrieved")
+        else:
+            print("ISS location not retrieved")
 
         # Close the data connection
-        #modem.deactivate_context()
+        modem.deactivate_context()
         conn_open = False
 
         # Pause 1 minute
@@ -58,4 +73,3 @@ while True:
         if conn_open:
             modem.deactivate_context()
         sys.exit()
-
