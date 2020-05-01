@@ -6,8 +6,9 @@ import json
 # Set up the modem
 modem = CellularIoT()
 modem.boot()
-modem.send_command("ATE0")
 modem.set_debug(False)
+# Turn off echoing (easier to parse responses)
+modem.send_command("ATE0")
 
 # URL of the data source
 source_url = "http://api.open-notify.org/iss-now.json"
@@ -34,24 +35,15 @@ while True:
 
         # Make the GET request
         result = modem.send_command("AT+QHTTPGET", "+QHTTPGET", 120)
-
-        # Read the response
         if result[0] == "OK":
-            # Check for HTTP error code
-            try:
-                response = result[1].split(": ")
-                response = response[1].split(",")
-            except IndexError:
-                print(response)
-                response = ["0"]
+            # Check for HTTP error code, eg. x in "+QHTTPGET: x,200,22323" not zero
+            response = result[1].split(": ")
+            response = response[1].split(",")
             if response[0] == "0":
                 result = modem.send_command("AT+QHTTPREAD", "OK")
-
-                # Parse the response
                 if result[0] == "OK":
                     response = result[1].split("\r\n")[2]
                     data = json.loads(response)
-
                     if data["message"] == "success":
                         print("ISS is at",data["iss_position"]["longitude"],",",data["iss_position"]["latitude"])
                 else:
