@@ -8,7 +8,7 @@ import json
 def process_iss_data(modem_response):
     # 'modem_response' is a string, eg. "+QHTTPGET: 0,200,22323"
     # Check for HTTP error code, the
-    response = modem_response[1].split(": ")
+    response = modem_response.split(": ")
     response = response[1].split(",")
 
     if response[0] == "0":
