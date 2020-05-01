@@ -1,17 +1,11 @@
-from ublox_lara_r2 import *
+from cellulariot import *
 import time
 import sys
-import jsonfrom ublox_lara_r2 import *
 import time
 import sys
 
 # Set up the modem
-modem = UbloxLaraR2()
-modem.boot()
-modem.set_debug(False)
-
-# Set up the modem
-modem = UbloxLaraR2()
+modem = CellularIoT()
 modem.boot()
 modem.set_debug(False)
 
