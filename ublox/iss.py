@@ -9,20 +9,20 @@ modem.boot()
 modem.set_debug(False)
 
 # URL of the data source
-base_url = "http://api.open-notify.org"
+base_url = "api.open-notify.org"
 conn_open = False
+
+# Reset the HTTP profile
+modem.send_command("AT+UHTTP=0")
+
+# Set the URL parameters: length and timeout
+modem.send_command("AT+UHTTP=0,1,\"" + base_url + "\"")
 
 while True:
     try:
         # Open a data connection
         modem.activate_context()
         conn_open = True
-
-        # Reset the HTTP profile
-        modem.send_command("AT+UHTTP=0")
-
-        # Set the URL parameters: length and timeout
-        modem.send_command("AT+UHTTP=0,1,\"" + base_url + "\"")
 
         # Make the GET request
         result = modem.send_command("AT+UHTTPC=0,1,\"/iss-now.json\",\"data.json\"", "+UUHTTPCR")
@@ -48,6 +48,7 @@ while True:
         conn_open = False
 
         # Pause 1 minute
+        print("*")
         time.sleep(60)
     except KeyboardInterrupt:
         if conn_open:
