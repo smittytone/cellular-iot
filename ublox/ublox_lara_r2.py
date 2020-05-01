@@ -20,6 +20,7 @@ class UbloxLaraR2():
     debug = True
     timeout = 3 # seconds
 
+
     def __init__(self, port="/dev/ttyAMA0", baudrate=115200):
         self.ser = serial.Serial()
         self.ser.port = port
@@ -31,6 +32,8 @@ class UbloxLaraR2():
 
     def initialize(self):
         GPIO.setmode(GPIO.BCM)
+        if self.debug is False:
+            GPIO.setwarnings(False)
         GPIO.setup(17, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(16, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(6, GPIO.OUT, initial=GPIO.LOW)
@@ -38,7 +41,7 @@ class UbloxLaraR2():
 
     # Start up the modem
     def boot(self):
-        #self.initialize()
+        self.initialize()
         while True:
             result = self.send_command("AT")
             if result[0] == "OK": return
