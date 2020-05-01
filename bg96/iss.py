@@ -3,6 +3,29 @@ import time
 import sys
 import json
 
+
+# Process the ISS data: lat and long
+def process_iss_data(modem_response):
+    # 'modem_response' is a string, eg. "+QHTTPGET: 0,200,22323"
+    # Check for HTTP error code, the
+    response = modem_response[1].split(": ")
+    response = response[1].split(",")
+
+    if response[0] == "0":
+        # Got a good response from the server,
+        # so read it back from the modem
+        result = modem.send_command("AT+QHTTPREAD", "OK")
+        if result[0] == "OK":
+            received_data = result[1].split("\r\n")[2]
+            iss_data = json.loads(received_data)
+            if iss_data["message"] == "success":
+                print("ISS is at",iss_data["iss_position"]["longitude"],",",iss_data["iss_position"]["latitude"])
+                return
+
+    # Display error message
+    print("ISS location not retrieved")
+
+
 # Set up the modem
 modem = CellularIoT()
 modem.boot()
@@ -33,25 +56,10 @@ while True:
         # 4. Set the URL as data
         modem.send_data(source_url)
 
-        # Make the GET request
+        # Make the GET request and parse the result
         result = modem.send_command("AT+QHTTPGET", "+QHTTPGET", 120)
         if result[0] == "OK":
-            # Check for HTTP error code, eg. x in "+QHTTPGET: x,200,22323" not zero
-            response = result[1].split(": ")
-            response = response[1].split(",")
-            if response[0] == "0":
-                result = modem.send_command("AT+QHTTPREAD", "OK")
-                if result[0] == "OK":
-                    response = result[1].split("\r\n")[2]
-                    data = json.loads(response)
-                    if data["message"] == "success":
-                        print("ISS is at",data["iss_position"]["longitude"],",",data["iss_position"]["latitude"])
-                else:
-                    print("ISS location not retrieved")
-            else:
-                print("ISS location not retrieved")
-        else:
-            print("ISS location not retrieved")
+            process_iss_data(result[1])
 
         # Close the data connection
         modem.deactivate_context()
