@@ -1,12 +1,12 @@
 from cellulariot import *
 import time
 import sys
-import time
-import sys
+import json
 
 # Set up the modem
 modem = CellularIoT()
 modem.boot()
+modem.send_command("ATE0")
 modem.set_debug(False)
 
 # URL of the data source
