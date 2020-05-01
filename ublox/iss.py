@@ -1,9 +1,7 @@
 from ublox_lara_r2 import *
 import time
 import sys
-import jsonfrom ublox_lara_r2 import *
-import time
-import sys
+import json
 
 # Set up the modem
 modem = UbloxLaraR2()
