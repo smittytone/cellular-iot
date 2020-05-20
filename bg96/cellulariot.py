@@ -257,6 +257,16 @@ class CellularIoT:
             self.send_command("AT+QCFG=\"iotopmode\",1,1")
             self.debug_print("Modem configuration : CATNB1_MODE ( NB-IoT )")
 
+    # Function for configurating and activating TCP context
+    def activate_context(self):
+        self.send_command("AT+QICSGP=1")
+        self.delay(1000)
+        self.send_command("AT+QIACT=1", "\r\n")
+
+    # Function for deactivating TCP context
+    def deactivate_context(self):
+        self.send_command("AT+QIDEACT=1", "\r\n")
+        
     # Function for getting self.ip_address
     def get_ip_address(self):
         return self.ip_address
