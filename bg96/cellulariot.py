@@ -12,31 +12,18 @@ import serial
 import RPi.GPIO as GPIO
 
 
-# Global variables
-TIMEOUT = 3 # seconds
-debug = True
-ser = serial.Serial()
 
-# Function for printing debug message
-def debug_print(message):
-    if debug:
-        print(message)
-
-# Function for getting time in miliseconds
-def millis():
-    return int(time.time())
-
-# Function for delay in miliseconds
-def delay(ms):
-    time.sleep(float(ms / 1000.0))
 
 
 class CellularIoT:
 
+    uart = None
+    debug = True
+    
     ip_address = "" # ip address
     domain_name = "" # domain name
     port_number = "" # port number
-    timeout = TIMEOUT
+    timeout = 3 # Seconds
 
     response = "" # variable for modem responses
     compose = "" # variable for command strings
@@ -84,14 +71,15 @@ class CellularIoT:
 
     # Initializer function
     def __init__(self, serial_port="/dev/ttyS0", serial_baudrate=115200, rtscts=False, dsrdtr=False):
-        ser.port = serial_port
-        ser.baudrate = serial_baudrate
-        ser.parity = serial.PARITY_NONE
-        ser.stopbits = serial.STOPBITS_ONE
-        ser.bytesize = serial.EIGHTBITS
-        ser.rtscts = rtscts
-        ser.dsrdtr = dsrdtr
-        debug_print("CellularIoT class instantiated")
+        self.uart = serial.Serial()
+        self.uart.port = serial_port
+        self.uart.baudrate = serial_baudrate
+        self.uart.parity = serial.PARITY_NONE
+        self.uart.stopbits = serial.STOPBITS_ONE
+        self.uart.bytesize = serial.EIGHTBITS
+        self.uart.rtscts = rtscts
+        self.uart.dsrdtr = dsrdtr
+        self.debug_print("CellularIoT class instantiated")
 
     def __del__(self):
         GPIO.cleanup()
@@ -110,12 +98,12 @@ class CellularIoT:
     # Function to enable BG96 module
     def enable(self):
         GPIO.output(self.BG96_ENABLE, 0)
-        debug_print("Modem enabled")
+        self.debug_print("Modem enabled")
 
     # Function for powering down BG96 module and all peripherals from voltage regulator
     def disable(self):
         GPIO.output(self.BG96_ENABLE, 1)
-        debug_print("Modem disabled")
+        self.debug_print("Modem disabled")
 
     # Function for powering BG96 module
     def power_up(self):
@@ -123,7 +111,7 @@ class CellularIoT:
         while GPIO.input(self.STATUS):
             pass
         GPIO.output(self.BG96_POWERKEY, 0)
-        debug_print("Modem powered")
+        self.debug_print("Modem powered")
 
     # Function for saving conf. and reset BG96_AT module
     def reset(self):
@@ -136,13 +124,13 @@ class CellularIoT:
 
     # Function for sending a comamand or data to module
     def send(self, command, is_command=True):
-        if ser.isOpen() is False:
-            ser.open()
+        if self.uart.isOpen() is False:
+            self.uart.open()
         self.compose = str(command)
         if is_command:
             self.compose += "\r"
-        ser.reset_input_buffer()
-        ser.write(self.compose.encode())
+        self.uart.reset_input_buffer()
+        self.uart.write(self.compose.encode())
 
     # Function for sending at command to BG96_AT.
     def send_command(self, command, desired_response="OK\r\n", timeout=None):
@@ -150,25 +138,25 @@ class CellularIoT:
             timeout = self.timeout
         self.response = ""
         self.send(command)
-        timer = millis()
+        timer = self.millis()
         while True:
-            if millis() - timer > timeout:
+            if self.millis() - timer > timeout:
                 # Re-issue command on timeout
                 # TODO or return an error?
                 self.response = ""
                 self.send(command)
-                timer = millis()
-            while ser.in_waiting > 0:
+                timer = self.millis()
+            while self.uart.in_waiting > 0:
                 try:
-                    self.response += ser.read(ser.in_waiting).decode('utf-8', errors='ignore')
-                    delay(100)
+                    self.response += self.uart.read(self.uart.in_waiting).decode('utf-8', errors='ignore')
+                    self.delay(100)
                 except Exception as exp:
-                    debug_print(exp.Message)
+                    self.debug_print(exp.Message)
             if self.response.find(desired_response) != -1:
-                debug_print(self.response)
+                self.debug_print(self.response)
                 return ("OK", self.response)
             if self.response.find("ERROR") != -1:
-                debug_print(self.response)
+                self.debug_print(self.response)
                 return ("ERROR", self.response)
                 break
 
@@ -178,19 +166,32 @@ class CellularIoT:
             timeout = self.timeout
         self.response = ""
         self.send(data, False)
-        timer = millis()
+        timer = self.millis()
         while True:
-            if millis() - timer > timeout:
+            if self.millis() - timer > timeout:
                 self.response = ""
                 self.send(data, False)
-                timer = millis()
+                timer = self.millis()
                 self.response = ""
-            while ser.in_waiting > 0:
-                self.response += ser.read(ser.in_waiting).decode('utf-8', errors='ignore')
+            while self.uart.in_waiting > 0:
+                self.response += self.uart.read(self.uart.in_waiting).decode('utf-8', errors='ignore')
             if self.response.find(desired_response) != -1 or self.response.find("ERROR") != -1:
-                debug_print(self.response)
+                self.debug_print(self.response)
                 break
 
+    # Function for printing debug message
+    def debug_print(self, message):
+        if self.debug:
+            print(message)
+    
+    # Function for getting time in miliseconds
+    def millis(self):
+        return int(time.time())
+
+    # Function for delay in miliseconds
+    def delay(self, ms):
+        time.sleep(float(ms / 1000.0))
+        
     # Function for save configurations that be done in current session.
     def save_config(self):
         self.send_command("AT&W")
@@ -238,23 +239,23 @@ class CellularIoT:
             self.send_command("AT+QCFG=\"nwscanseq\",00,1")
             self.send_command("AT+QCFG=\"nwscanmode\",0,1")
             self.send_command("AT+QCFG=\"iotopmode\",2,1")
-            debug_print("Modem configuration : AUTO_MODE")
-            debug_print("*Priority Table (Cat.M1 -> Cat.NB1 -> GSM)")
+            self.debug_print("Modem configuration : AUTO_MODE")
+            self.debug_print("*Priority Table (Cat.M1 -> Cat.NB1 -> GSM)")
         elif mode == self.GSM_MODE:
             self.send_command("AT+QCFG=\"nwscanseq\",01,1")
             self.send_command("AT+QCFG=\"nwscanmode\",1,1")
             self.send_command("AT+QCFG=\"iotopmode\",2,1")
-            debug_print("Modem configuration : GSM_MODE")
+            self.debug_print("Modem configuration : GSM_MODE")
         elif mode == self.CATM1_MODE:
             self.send_command("AT+QCFG=\"nwscanseq\",02,1")
             self.send_command("AT+QCFG=\"nwscanmode\",3,1")
             self.send_command("AT+QCFG=\"iotopmode\",0,1")
-            debug_print("Modem configuration : CATM1_MODE")
+            self.debug_print("Modem configuration : CATM1_MODE")
         elif mode == self.CATNB1_MODE:
             self.send_command("AT+QCFG=\"nwscanseq\",03,1")
             self.send_command("AT+QCFG=\"nwscanmode\",3,1")
             self.send_command("AT+QCFG=\"iotopmode\",1,1")
-            debug_print("Modem configuration : CATNB1_MODE ( NB-IoT )")
+            self.debug_print("Modem configuration : CATNB1_MODE ( NB-IoT )")
 
     # Function for getting self.ip_address
     def get_ip_address(self):
@@ -290,89 +291,5 @@ class CellularIoT:
 
     # Function to set debug state
     def set_debug(self, state=True):
-        global debug
-        debug = state
+        self.debug = state
 
-    #******************************************************************************************
-    #*** SMS Functions ************************************************************************
-    #******************************************************************************************
-
-    # Function for sending SMS
-    def send_sms(self, number, text):
-        self.send_command("AT+CMGF=1") # text mode
-        delay(500)
-
-        self.compose = "AT+CMGS=\""
-        self.compose += str(number)
-        self.compose += "\""
-
-        self.send_command(self.compose, ">")
-        delay(1000)
-        self.compose = ""
-        delay(1000)
-        self.send(text)
-        self.send_command(self.CTRL_Z, "OK", 8) # with 8 seconds timeout
-
-    #******************************************************************************************
-    #*** TCP & UDP Protocols Functions ********************************************************
-    #******************************************************************************************
-
-    # Function for configurating and activating TCP context
-    def activate_context(self):
-        self.send_command("AT+QICSGP=1")
-        delay(1000)
-        self.send_command("AT+QIACT=1", "\r\n")
-
-    # Function for deactivating TCP context
-    def deactivate_context(self):
-        self.send_command("AT+QIDEACT=1", "\r\n")
-
-    # Function for connecting to server via TCP
-    # just buffer access mode is supported for now.
-    def connect_to_server_tcp(self):
-        self.compose = "AT+QIOPEN=1,1"
-        self.compose += ",\"TCP\",\""
-        self.compose += str(self.ip_address)
-        self.compose += "\","
-        self.compose += str(self.port_number)
-        self.compose += ",0,0"
-        self.send_command(self.compose)
-        self.compose = ""
-        self.send_command("AT+QISTATE=0,1")
-
-    # Fuction for sending data via TCP.
-    # just buffer access mode is supported for now.
-    def send_data_tcp(self, data):
-        self.compose = "AT+QISEND=1,"
-        self.compose += str(len(data))
-        self.send_command(self.compose, ">")
-        self.send_command(data, "SEND OK")
-        self.compose = ""
-
-    # Function for connecting to server via UDP
-    def connect_to_server_udp(self):
-        port = "3005"
-        self.compose = "AT+QIOPEN=1,1,\"UDP SERVICE\",\""
-        self.compose += str(self.ip_address)
-        self.compose += "\",0,"
-        self.compose += str(port)
-        self.compose += ",0"
-        self.send_command(self.compose)
-        self.compose = ""
-        self.send_command("AT+QISTATE=0,1", "\r\n")
-
-    # Fuction for sending data via udp.
-    def send_data_udp(self, data):
-        self.compose = "AT+QISEND=1,"
-        self.compose += str(len(data))
-        self.compose += ",\""
-        self.compose += str(self.ip_address)
-        self.compose += "\","
-        self.compose += str(self.port_number)
-        self.send_command(self.compose, ">")
-        self.compose = ""
-        self.send_command(data, "SEND OK")
-
-    # Function for closing server connection
-    def close_connection(self):
-        self.send_command("AT+QICLOSE=1", "\r\n")
