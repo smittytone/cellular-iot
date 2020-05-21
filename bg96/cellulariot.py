@@ -12,9 +12,6 @@ import serial
 import RPi.GPIO as GPIO
 
 
-
-
-
 class CellularIoT:
 
     uart = None
@@ -302,4 +299,3 @@ class CellularIoT:
     # Function to set debug state
     def set_debug(self, state=True):
         self.debug = state
-
