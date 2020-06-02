@@ -19,14 +19,17 @@ modem.send_command("AT+UHTTP=0,7,30")
 # Set the URL parameters: length and timeout
 modem.send_command("AT+UHTTP=0,1,\"" + base_url + "\"")
 
+# Set the PSD APN
+modem.send_command("AT+UPSD=0,1,\"super\"")
+
 while True:
     try:
         # Open a data connection
-        modem.activate_context()
+        modem.send_command("AT+UPSDA=0,3")
         conn_open = True
 
         # Make the GET request
-        result = modem.send_command("AT+UHTTPC=0,1,\"/iss-now.json\",\"data.json\"", "+UUHTTPCR")
+        result = modem.send_command("AT+UHTTPC=0,1,\"/iss-now.json\",\"data.json\"", "UUHTTPCR")
 
         if result[0] == "OK":
             # Check for HTTP error code
